@@ -2,7 +2,7 @@
 #################################################################################
 #
 #    Odoo, Open Source Management Solution
-#    Copyright (C) 2017 Ascetic Business Solution <www.asceticbs.com>
+#    Copyright (C) 2018 Ascetic Business Solution <www.asceticbs.com>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -36,7 +36,7 @@ class SaleOrderLine(models.Model):
         for record in self:
             line_ids = []
             if record.product_id:
-                order_lines = self.env['sale.order.line'].sudo().search([('order_partner_id', '=', record.order_partner_id.id),('product_id', '=', record.product_id.id),('order_id.state','=','done')])
+                order_lines = self.env['sale.order.line'].sudo().search([('order_partner_id', '=', record.order_partner_id.id),('product_id', '=', record.product_id.id),('order_id.state','in',('sale','done'))])
                 if order_lines:
                     for lines in order_lines:
                         line_ids.append(lines.id)
