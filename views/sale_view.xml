@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<openerp>
-    <data>
+<odoo>  
 
        <!-- Extended the sale order line view for add last price fields -->
        <record id="view_sale_order_line_inherit_sale_history" model="ir.ui.view">
@@ -20,5 +19,4 @@
 	        </field>
 	   </record>
 
-    </data>
-</openerp>
+</odoo>

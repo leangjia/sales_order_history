@@ -21,36 +21,29 @@
 
 from openerp import api, models, fields
 
-class sale_order_line(models.Model):
+class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
     last_price1 = fields.Float('Last Sale Price 1', help="Shows the last sales price of the product for selected customer from the Past two Sales order")
     last_price2 = fields.Float('Last Sale Price 2', help="Shows the second last sales price of the product for selected customer from the Past two Sales order")
 
-    #For update the onchange of product
-    def product_id_change(self, cr, uid, ids, pricelist, product, qty=0,
-            uom=False, qty_uos=0, uos=False, name='', partner_id=False,
-            lang=False, update_tax=True, date_order=False, packaging=False, fiscal_position=False, flag=False, context=None):
+    @api.onchange('product_id')
+    def product_id_change(self):
+        super(SaleOrderLine, self).product_id_change()
         result = {}
         last_price1 = 0.0
         last_price2 = 0.0
-        res = super(sale_order_line, self).product_id_change(cr, uid, ids, pricelist, product, qty=qty,
-            uom=uom, qty_uos=qty_uos, uos=uos, name=name, partner_id=partner_id,
-            lang=lang, update_tax=update_tax, date_order=date_order, packaging=packaging, fiscal_position=fiscal_position, flag=flag, context=context)
-        if res.get('value',False):
-            result = res['value']
-        line_ids = []
-        if product:
-            order_lines = self.pool.get('sale.order.line').search(cr, uid, [('order_partner_id', '=', partner_id),('product_id', '=', product),('order_id.state','=','done')], context=context)
-            if order_lines:
-                for lines in order_lines:
-                    line_ids.append(lines)
-        final_list = sorted(line_ids, key=int, reverse=True)
-        if len(final_list)>=1:
-            last_price1 = self.pool.get('sale.order.line').browse(cr, uid, final_list[0], context=context).price_unit
-            result['last_price1'] = last_price1
-        if len(final_list)>=2:
-            last_price2 = self.pool.get('sale.order.line').browse(cr, uid, final_list[1], context=context).price_unit
-            result['last_price2'] = last_price2
-        return {'value': result}
-
+        for record in self:
+            line_ids = []
+            if record.product_id:
+                order_lines = self.env['sale.order.line'].sudo().search([('order_partner_id', '=', record.order_partner_id.id),('product_id', '=', record.product_id.id),('order_id.state','=','done')])
+                if order_lines:
+                    for lines in order_lines:
+                        line_ids.append(lines.id)
+            final_list = sorted(line_ids, key=int, reverse=True)
+            if len(final_list)>=1:
+                last_price1 = self.env['sale.order.line'].sudo().browse(final_list[0])
+                record.last_price1 = last_price1.price_unit
+            if len(final_list)>=2:
+                last_price2 = self.env['sale.order.line'].sudo().browse(final_list[1])
+                record.last_price2 = last_price2.price_unit
